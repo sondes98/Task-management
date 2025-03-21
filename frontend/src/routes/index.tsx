@@ -35,7 +35,7 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/task-form"
         element={
-          <ProtectedRoute adminOnly>
+          <ProtectedRoute>
             <TaskForm />
           </ProtectedRoute>
         }
@@ -43,7 +43,7 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/task-form/:id"
         element={
-          <ProtectedRoute adminOnly>
+          <ProtectedRoute>
             <TaskForm />
           </ProtectedRoute>
         }
