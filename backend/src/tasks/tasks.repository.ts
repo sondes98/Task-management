@@ -24,6 +24,10 @@ export class TasksRepository {
     return this.taskRepository.findOne({ where: { id } });
   }
 
+  async findByIdAndUserId(id: number, userId: number): Promise<Task | null> {
+    return this.taskRepository.findOne({ where: { id, userId } });
+  }
+
   async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
     const task = this.taskRepository.create({
       ...createTaskDto,

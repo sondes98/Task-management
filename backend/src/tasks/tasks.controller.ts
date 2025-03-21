@@ -41,9 +41,10 @@ export class TasksController {
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.tasksService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: any,
+  ): Promise<void> {
+    return this.tasksService.removeByUser(id, user.id, user.role);
   }
 } 

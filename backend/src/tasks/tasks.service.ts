@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TasksRepository } from './tasks.repository';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
+import { UserRole } from '../users/entities/user.entity';
 
 @Injectable()
 export class TasksService {
@@ -37,6 +38,26 @@ export class TasksService {
   }
 
   async remove(id: number): Promise<void> {
+    const result = await this.tasksRepository.remove(id);
+    
+    if (!result) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+  }
+
+  async removeByUser(id: number, userId: number, userRole: UserRole): Promise<void> {
+    // If user is admin, they can delete any task
+    if (userRole === UserRole.ADMIN) {
+      return this.remove(id);
+    }
+    
+    // For regular users, check if the task belongs to them
+    const task = await this.tasksRepository.findByIdAndUserId(id, userId);
+    
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${id}" not found or you don't have permission to delete it`);
+    }
+    
     const result = await this.tasksRepository.remove(id);
     
     if (!result) {
