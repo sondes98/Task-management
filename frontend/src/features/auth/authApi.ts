@@ -5,7 +5,6 @@ export const login = async (loginData: LoginRequest): Promise<{ accessToken: str
   try {
     console.log('Login request data:', loginData);
     
-    // Add a bit more logging for debugging
     console.log('Sending request to:', `${axiosInstance.defaults.baseURL}/auth/login`);
     
     const response = await axiosInstance.post<AuthResponse>('/auth/login', loginData);
@@ -13,13 +12,11 @@ export const login = async (loginData: LoginRequest): Promise<{ accessToken: str
     console.log('Login response headers:', response.headers);
     console.log('Login response data:', response.data);
     
-    // Validate the structure of the response
     if (!response.data) {
       console.error('Empty response data');
       throw new Error('Empty response received from server');
     }
     
-    // The backend might return either access_token or accessToken
     const accessToken = response.data.access_token || response.data.accessToken;
     const user = response.data.user;
     
@@ -36,7 +33,6 @@ export const login = async (loginData: LoginRequest): Promise<{ accessToken: str
     console.log('Extracted token:', accessToken.substring(0, 15) + '...');
     console.log('Extracted user:', user);
     
-    // Store token and user in localStorage for persistence
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('user', JSON.stringify(user));
     console.log('Stored auth data in localStorage');
@@ -53,7 +49,6 @@ export const login = async (loginData: LoginRequest): Promise<{ accessToken: str
       headers: error.response?.headers
     });
     
-    // Provide more specific error messages based on the error
     if (error.response) {
       const status = error.response.status;
       if (status === 401) {
@@ -75,7 +70,6 @@ export const register = async (registerData: RegisterRequest): Promise<{ accessT
     const response = await axiosInstance.post<AuthResponse>('/auth/register', registerData);
     console.log('Register response:', response.data);
     
-    // The backend might return either access_token or accessToken
     const accessToken = response.data.access_token || response.data.accessToken;
     const user = response.data.user;
     
@@ -84,7 +78,6 @@ export const register = async (registerData: RegisterRequest): Promise<{ accessT
       throw new Error('Invalid response format from server');
     }
     
-    // Store token and user in localStorage for persistence
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('user', JSON.stringify(user));
     

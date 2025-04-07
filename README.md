@@ -148,3 +148,7 @@ The complete API documentation is available on Postman:
 ## License
 
 This project is licensed under the MIT License.
+
+
+java -jar jenkins.war
+

@@ -1,0 +1,57 @@
+pipeline {
+    agent any  // Utilise n'importe quel agent Jenkins disponible
+    
+    environment {
+        DOCKER_IMAGE = "react_frontend"  // Nom de l'image Docker du frontend
+        CONTAINER_NAME = "react_frontend_container"  // Nom du conteneur qui exécutera l'application frontend
+    }
+
+    stages {
+        stage('Checkout') {  // Étape 1 : Récupération du code source
+            steps {
+                git 'https://github.com/sondes98/Task-managmenet/tree/main/frontend.git'  
+                // Clone le dépôt Git contenant le frontend React
+            }
+        }
+
+        stage('Install Dependencies') {  // Étape 2 : Installation des dépendances
+            steps {
+                sh 'npm install'  // Installe les modules nécessaires définis dans package.json
+            }
+        }
+
+        stage('Lint') {  // Étape 3 : Vérification du code avec ESLint
+            steps {
+                sh 'npm run lint'  // Analyse le code pour détecter des erreurs ou des problèmes de style
+            }
+        }
+
+        stage('Test') {  // Étape 4 : Exécution des tests unitaires
+            steps {
+                sh 'npm test'  // Lance les tests définis pour le projet React
+            }
+        }
+
+        stage('Build') {  // Étape 5 : Compilation du projet en version de production
+            steps {
+                sh 'npm run build'  // Génère les fichiers optimisés pour la production
+            }
+        }
+
+        stage('Docker Build & Push') {  // Étape 6 : Construction et envoi de l'image Docker
+            steps {
+                sh 'docker build -t myrepo/$DOCKER_IMAGE:latest .'  // Crée une image Docker contenant le frontend React
+                sh 'docker push myrepo/$DOCKER_IMAGE:latest'  // Envoie l'image vers un registre distant (ex: Docker Hub)
+            }
+        }
+
+        stage('Deploy') {  // Étape 7 : Déploiement de l'application React dans un conteneur
+            steps {
+                sh 'docker stop $CONTAINER_NAME || true'  // Arrête le conteneur existant s'il tourne déjà
+                sh 'docker rm $CONTAINER_NAME || true'  // Supprime l'ancien conteneur pour éviter les conflits
+                sh 'docker run -d --name $CONTAINER_NAME -p 3000:3000 myrepo/$DOCKER_IMAGE:latest'  
+                // Démarre le nouveau conteneur et expose le port 3000 pour accéder à l'application
+            }
+        }
+    }
+}

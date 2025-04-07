@@ -33,9 +33,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from '../store';
-import { setTasks, setLoading, setError, removeTask } from '../features/tasks/tasksSlice';
-import { fetchTasks, deleteTask } from '../features/tasks/tasksApi';
-import { Task, TaskStatus, TaskPriority } from '../features/tasks/types';
+import { setTasks, setLoading, setError, removeTask} from '../features/tasks/tasksSlice';
+import { fetchTasks, deleteTask} from '../features/tasks/tasksApi';
+import {TaskStatus, TaskPriority } from '../features/tasks/types';
+
+
 
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch();

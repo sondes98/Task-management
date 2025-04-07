@@ -1,0 +1,56 @@
+pipeline {
+    agent any  // Utilise n'importe quel agent disponible dans Jenkins
+
+    environment {
+        DOCKER_IMAGE = "nestjs_backend"  // Définition du nom de l'image Docker
+        CONTAINER_NAME = "nestjs_backend_container"  // Nom du conteneur Docker qui sera utilisé pour exécuter l'application
+    }
+
+    stages {
+        stage('Checkout') {  // Étape 1 : Récupération du code source
+            steps {
+                git 'https://github.com/sondes98/Task-managmenet/tree/main/backend.git'  // Clone le dépôt Git contenant le backend
+            }
+        }
+
+        stage('Install Dependencies') {  // Étape 2 : Installation des dépendances
+            steps {
+                sh 'npm install'  // Installe toutes les dépendances définies dans package.json
+            }
+        }
+
+        stage('Lint') {  // Étape 3 : Vérification du code avec ESLint
+            steps {
+                sh 'npm run lint'  // Analyse statique du code pour détecter d'éventuelles erreurs de syntaxe et de style
+            }
+        }
+
+        stage('Test') {  // Étape 4 : Exécution des tests unitaires
+            steps {
+                sh 'npm test'  // Exécute les tests définis dans le projet
+            }
+        }
+
+        stage('Build') {  // Étape 5 : Compilation du projet
+            steps {
+                sh 'npm run build'  // Compile le code TypeScript en JavaScript exécutable
+            }
+        }
+
+        stage('Docker Build & Push') {  // Étape 6 : Création et publication de l'image Docker
+            steps {
+                sh 'docker build -t myrepo/$DOCKER_IMAGE:latest .'  // Construit une image Docker du backend avec le tag "latest"
+                sh 'docker push myrepo/$DOCKER_IMAGE:latest'  // Pousse l'image Docker vers un registre distant (ex: Docker Hub)
+            }
+        }
+
+        stage('Deploy') {  // Étape 7 : Déploiement de l'application
+            steps {
+                sh 'docker stop $CONTAINER_NAME || true'  // Arrête le conteneur en cours s'il existe déjà (ignore l'erreur si inexistant)
+                sh 'docker rm $CONTAINER_NAME || true'  // Supprime l'ancien conteneur pour éviter les conflits
+                sh 'docker run -d --name $CONTAINER_NAME -p 5000:5000 myrepo/$DOCKER_IMAGE:latest'  
+                // Démarre un nouveau conteneur en arrière-plan, avec le port 5000 exposé
+            }
+        }
+    }
+}

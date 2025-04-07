@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Task } from '../../pages/Dashboard';
+import { Task, TaskStatus, TaskPriority } from '../../features/tasks/types';
 
 interface TaskModalProps {
   open: boolean;
@@ -30,21 +30,31 @@ const TaskModal: React.FC<TaskModalProps> = ({ open, onClose, onTaskAdded }) => 
     initialValues: {
       title: '',
       description: '',
-      status: 'To Do' as const,
-      priority: 'Low' as const,
+      status: 'To Do' as TaskStatus,
+      priority: 'Low' as TaskPriority,
       assignedTo: '',
+      dueDate: '', // Added missing field
+      userId: 0, // You can modify how userId is assigned
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       description: Yup.string().required('Description is required'),
       assignedTo: Yup.string().required('Assignee is required'),
+      // Add validation for 'dueDate' if needed
     }),
     onSubmit: async (values) => {
       if (!accessToken) return;
       try {
-        const newTask = await addTask(values, accessToken);
-        onTaskAdded(newTask);
-        onClose();
+        // Prepare the new task object, adding the missing fields
+        const newTask: Omit<Task, 'id'> = {
+          ...values,
+        };
+
+        const taskResponse = await addTask(newTask, accessToken);
+        onTaskAdded(taskResponse); // Pass the task to the parent component
+        onClose(); // Close the modal
       } catch (error) {
         console.error('Failed to add task:', error);
       }
@@ -93,7 +103,12 @@ const TaskModal: React.FC<TaskModalProps> = ({ open, onClose, onTaskAdded }) => 
           />
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Status</InputLabel>
-            <Select name="status" value={formik.values.status} onChange={formik.handleChange}>
+            <Select
+              name="status"
+              value={formik.values.status}
+              onChange={formik.handleChange}
+              label="Status"
+            >
               <MenuItem value="To Do">To Do</MenuItem>
               <MenuItem value="In Progress">In Progress</MenuItem>
               <MenuItem value="Done">Done</MenuItem>
@@ -101,7 +116,12 @@ const TaskModal: React.FC<TaskModalProps> = ({ open, onClose, onTaskAdded }) => 
           </FormControl>
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Priority</InputLabel>
-            <Select name="priority" value={formik.values.priority} onChange={formik.handleChange}>
+            <Select
+              name="priority"
+              value={formik.values.priority}
+              onChange={formik.handleChange}
+              label="Priority"
+            >
               <MenuItem value="Low">Low</MenuItem>
               <MenuItem value="Medium">Medium</MenuItem>
               <MenuItem value="High">High</MenuItem>
