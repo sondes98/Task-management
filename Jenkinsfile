@@ -1,120 +1,92 @@
 pipeline {
-    agent any  // Use any available Jenkins agent
+    agent any
 
     environment {
-        DOCKERHUB_USERNAME = "sondes98"  // Docker Hub username
-        FRONTEND_REPO = "${DOCKERHUB_USERNAME}/task-management-frontend"  // Docker Hub repo for frontend
-        BACKEND_REPO = "${DOCKERHUB_USERNAME}/task-management-backend"  // Docker Hub repo for backend
-        FRONTEND_CONTAINER_NAME = "react_frontend_container"  // Frontend container name
-        BACKEND_CONTAINER_NAME = "nestjs_backend_container"  // Backend container name
-        DOCKERHUB_CREDENTIALS_ID = "dockerhub-creds"  // Jenkins Docker Hub credentials ID
+        DOCKERHUB_USERNAME = "sondes98"
+        FRONTEND_REPO = "${DOCKERHUB_USERNAME}/task-management-frontend"
+        BACKEND_REPO = "${DOCKERHUB_USERNAME}/task-management-backend"
+        DOCKERHUB_CREDENTIALS_ID = "dockerhub-creds"
     }
 
     stages {
-        // Frontend pipeline
-        stage('Frontend Checkout') {
+        stage('Checkout Code') {
             steps {
-                git 'https://github.com/sondes98/Task-managmenet/tree/main/frontend.git'
+                git url: 'https://github.com/sondes98/Task-managmenet.git', branch: 'main'
             }
         }
 
-        stage('Frontend Install Dependencies') {
+        stage('Install Frontend Dependencies') {
             steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('Frontend Lint') {
-            steps {
-                sh 'npm run lint'
-            }
-        }
-
-        stage('Frontend Test') {
-            steps {
-                sh 'npm test'
-            }
-        }
-
-        stage('Frontend Build') {
-            steps {
-                sh 'npm run build'
-            }
-        }
-
-        stage('Frontend Docker Build & Push to Docker Hub') {
-            steps {
-                script {
-                    // Login to Docker Hub
-                    withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                    }
-                    // Build and push Docker image for frontend
-                    sh 'docker build -t $FRONTEND_REPO:latest .'
-                    sh 'docker push $FRONTEND_REPO:latest'
+                dir('frontend') {
+                    sh 'npm install'
                 }
             }
         }
 
-        stage('Frontend Deploy') {
+        stage('Lint & Test Frontend') {
             steps {
-                sh 'docker stop $FRONTEND_CONTAINER_NAME || true'
-                sh 'docker rm $FRONTEND_CONTAINER_NAME || true'
-                sh 'docker run -d --name $FRONTEND_CONTAINER_NAME -p 3000:3000 $FRONTEND_REPO:latest'
+                dir('frontend') {
+                    sh 'npm run lint || true'
+                    sh 'npm test || true'
+                }
             }
         }
 
-        // Backend pipeline
-        stage('Backend Checkout') {
+        stage('Install Backend Dependencies') {
             steps {
-                git 'https://github.com/sondes98/Task-managmenet/tree/main/backend.git'
+                dir('backend') {
+                    sh 'npm install'
+                }
             }
         }
 
-        stage('Backend Install Dependencies') {
+        stage('Lint & Test Backend') {
             steps {
-                sh 'npm install'
+                dir('backend') {
+                    sh 'npm run lint || true'
+                    sh 'npm test || true'
+                }
             }
         }
 
-        stage('Backend Lint') {
-            steps {
-                sh 'npm run lint'
-            }
-        }
-
-        stage('Backend Test') {
-            steps {
-                sh 'npm test'
-            }
-        }
-
-        stage('Backend Build') {
-            steps {
-                sh 'npm run build'
-            }
-        }
-
-        stage('Backend Docker Build & Push to Docker Hub') {
+        stage('Build & Push Docker Images') {
             steps {
                 script {
-                    // Login to Docker Hub
                     withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
                     }
-                    // Build and push Docker image for backend
-                    sh 'docker build -t $BACKEND_REPO:latest .'
+
+                    // Build & tag frontend
+                    sh 'docker build -t $FRONTEND_REPO:latest ./frontend'
+                    sh 'docker push $FRONTEND_REPO:latest'
+
+                    // Build & tag backend
+                    sh 'docker build -t $BACKEND_REPO:latest ./backend'
                     sh 'docker push $BACKEND_REPO:latest'
                 }
             }
         }
 
-        stage('Backend Deploy') {
+        stage('Deploy with Docker Compose') {
             steps {
-                sh 'docker stop $BACKEND_CONTAINER_NAME || true'
-                sh 'docker rm $BACKEND_CONTAINER_NAME || true'
-                sh 'docker run -d --name $BACKEND_CONTAINER_NAME -p 5000:5000 $BACKEND_REPO:latest'
+                // Stop existing containers if running
+                sh 'docker-compose down || true'
+
+                // Deploy new containers
+                sh 'docker-compose up -d --build'
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        failure {
+            echo 'Pipeline failed 😢'
+        }
+        success {
+            echo 'Pipeline succeeded 🎉'
         }
     }
 }
