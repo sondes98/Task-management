@@ -21,6 +21,7 @@ services:
   # Service Backend (NestJS)
   backend:
     build: ./backend  # Indique le dossier où se trouve le Dockerfile du backend
+    image: sondes98/task-management-frontend
     container_name: nestjs_backend  # Nom du conteneur du backend
     restart: always  # Redémarre automatiquement le conteneur si arrêté
     depends_on:
@@ -39,6 +40,7 @@ services:
   # Service Frontend (React)
   frontend:
     build: ./frontend  # Indique le dossier où se trouve le Dockerfile du frontend
+    image: sondes98/task-management-frontend
     container_name: react_frontend  # Nom du conteneur frontend
     restart: always  # Redémarre automatiquement le conteneur si arrêté
     depends_on:
