@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # Service MySQL (Database)
   mysql:
@@ -24,7 +26,7 @@ services:
     restart: always  # Automatically restart the container if it stops
     depends_on:
       - mysql  # Ensure MySQL starts before the backend
-    entrypoint: ["./wait-for-it.sh", "mysql:3306", "--", "npm", "run", "start:dev"]
+    entrypoint: ["/bin/sh", "-c", "until nc -z mysql 3306; do echo 'Waiting for MySQL...'; sleep 2; done; npm run start:dev"]    
     environment:
       DB_HOST: mysql  # MySQL service name (used in Docker Compose networking)
       DB_PORT: 3306  # MySQL port
