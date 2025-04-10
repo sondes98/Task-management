@@ -1,61 +1,61 @@
-version: '3'  # Version de Docker Compose utilisée
+version: '3.8'
 
 services:
-  # Service MySQL (Base de données)
+  # Service MySQL (Database)
   mysql:
-    image: mysql:8.0  # Utilise l'image officielle de MySQL version 8.0
-    container_name: mysql_db  # Nom du conteneur MySQL
-    restart: always  # Redémarre automatiquement le conteneur en cas d'arrêt
+    image: mysql:8.0  # Use the official MySQL image version 8.0
+    container_name: mysql_db  # Container name for MySQL
+    restart: always  # Automatically restart the container if it stops
     environment:
-      MYSQL_ROOT_PASSWORD: root_password  # Mot de passe root
-      MYSQL_DATABASE: my_database  # Nom de la base de données créée au démarrage
-      MYSQL_USER: mysql  # Nom de l'utilisateur MySQL
-      MYSQL_PASSWORD: my_password  # Mot de passe de l'utilisateur
+      MYSQL_ROOT_PASSWORD: root_password  # Root password
+      MYSQL_DATABASE: my_database  # Database to create on startup
+      MYSQL_USER: mysql  # MySQL user
+      MYSQL_PASSWORD: my_password  # MySQL user password
     ports:
-      - "3306:3306"  # Expose MySQL sur le port 3306 de l'hôte
+      - "3306:3306"  # Expose MySQL on port 3306 of the host
     volumes:
-      - mysql_data:/var/lib/mysql  # Stocke les données MySQL pour persistance
+      - mysql_data:/var/lib/mysql  # Persist MySQL data
     networks:
-      - app_network  # Connecte le service au réseau interne
+      - app_network  # Connect MySQL to the internal network
 
   # Service Backend (NestJS)
   backend:
-    build: ./backend  # Indique le dossier où se trouve le Dockerfile du backend
-    image: sondes98/task-management-frontend
-    container_name: nestjs_backend  # Nom du conteneur du backend
-    restart: always  # Redémarre automatiquement le conteneur si arrêté
+    build: ./backend  # Path to the Dockerfile for the backend
+    image: sondes98/task-management-backend
+    container_name: nestjs_backend  # Container name for the backend
+    restart: always  # Automatically restart the container if it stops
     depends_on:
-      - mysql  # Assure que MySQL démarre avant le backend
+      - mysql  # Ensure MySQL starts before the backend
+    entrypoint: ["./wait-for-it.sh", "mysql:3306", "--", "npm", "run", "start:dev"]  # Wait for MySQL to be ready before starting the app
     environment:
-      DB_HOST: mysql  # Adresse du serveur MySQL (nom du service dans Docker)
-      DB_PORT: 3306  # Port de connexion à la base de données
-      DB_USER: mysql  # Identifiant de connexion à MySQL
-      DB_PASSWORD: my_password  # Mot de passe de connexion à MySQL
-      DB_NAME: my_database  # Base de données utilisée par l'application
+      DB_HOST: mysql  # MySQL service name (used in Docker Compose networking)
+      DB_PORT: 3306  # MySQL port
+      DB_USER: mysql  # MySQL user
+      DB_PASSWORD: my_password  # MySQL password
+      DB_NAME: my_database  # Database used by the app
     ports:
-      - "5000:5000"  # Expose l'API sur le port 5000 de l'hôte
+      - "5001:5000"  # Expose the API on port 5000 of the container, map it to 5001 of the host
     networks:
-      - app_network  # Connecte le backend au réseau interne
+      - app_network  # Connect backend to the internal network
 
   # Service Frontend (React)
   frontend:
-    build: ./frontend  # Indique le dossier où se trouve le Dockerfile du frontend
+    build: ./frontend  # Path to the Dockerfile for the frontend
     image: sondes98/task-management-frontend
-    container_name: react_frontend  # Nom du conteneur frontend
-    restart: always  # Redémarre automatiquement le conteneur si arrêté
+    container_name: react_frontend  # Container name for the frontend
+    restart: always  # Automatically restart the container if it stops
     depends_on:
-      - backend  # Assure que le backend démarre avant le frontend
+      - backend  # Ensure backend starts before frontend
     ports:
-      - "5173:5173"  # Expose le frontend sur le port 3000 de l'hôte
+      - "5173:5173"  # Expose frontend on port 5173 of the host
     networks:
-      - app_network  # Connecte le frontend au réseau interne
+      - app_network  # Connect frontend to the internal network
 
-# Définition des volumes pour la persistance des données
+# Volumes for persistent data
 volumes:
-  mysql_data:  # Volume persistant pour stocker les données MySQL
+  mysql_data:  # Persistent volume to store MySQL data
 
-# Définition du réseau Docker pour la communication entre services
+# Network definition for service communication
 networks:
   app_network:
-    driver: bridge  # Crée un réseau isolé pour les services
-
+    driver: bridge  # Isolated network for services to communicate

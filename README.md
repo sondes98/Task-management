@@ -82,7 +82,7 @@ A full-stack task management application built with NestJS (backend) and React (
 
 3. Create a `.env` file in the backend directory with the following variables:
    ```
-   DATABASE_HOST=localhost
+   DATABASE_HOST=0.0.0.0
    DATABASE_PORT=5432
    DATABASE_USERNAME=postgres
    DATABASE_PASSWORD=your_password
@@ -96,7 +96,7 @@ A full-stack task management application built with NestJS (backend) and React (
    npm run start:dev
    ```
 
-5. The backend API will be available at http://localhost:3000
+5. The backend API will be available at http://0.0.0.0:3000
 
 ### Frontend Setup
 
@@ -112,7 +112,7 @@ A full-stack task management application built with NestJS (backend) and React (
 
 3. Create a `.env` file in the frontend directory with the following variables:
    ```
-   REACT_APP_API_BASE_URL=http://localhost:3000
+   REACT_APP_API_BASE_URL=http://0.0.0.0:3000
    ```
 
 4. Start the development server:
@@ -120,7 +120,7 @@ A full-stack task management application built with NestJS (backend) and React (
    npm start
    ```
 
-5. The frontend application will be available at http://localhost:3000
+5. The frontend application will be available at http://0.0.0.0:3000
 
 ## API Documentation
 
