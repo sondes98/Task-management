@@ -8,9 +8,8 @@ RUN npm install
 # Ensure wait-for-it.sh is copied explicitly
 COPY wait-for-it.sh /app/wait-for-it.sh
 RUN chmod +x /app/wait-for-it.sh
-RUN ls -l /app/wait-for-it.sh
 
-COPY . . 
+COPY . .
 
 RUN npm run build
 
