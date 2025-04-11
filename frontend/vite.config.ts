@@ -5,9 +5,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',  // Exposes the server on all network interfaces
-    port: 5173, 
+    port: 5173,
     proxy: {
-      '/api': 'http://localhost:5000', 
+      '/api': {
+        target: 'http://localhost:5000', // Backend server URL
+        changeOrigin: true,              // Ensures that the origin of the host header is changed
+        rewrite: (path) => path.replace(/^\/api/, ''), // Strips /api prefix before sending to the backend
+      },
     },
   },
 })
