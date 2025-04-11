@@ -29,4 +29,3 @@ dist-ssr
 
 # CI/CD and container files
 Jenkinsfile
-Dockerfile
